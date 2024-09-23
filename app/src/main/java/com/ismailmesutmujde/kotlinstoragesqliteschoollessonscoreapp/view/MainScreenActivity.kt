@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.ismailmesutmujde.kotlinstoragesqliteschoollessonscoreapp.adapter.LessonScoresRecyclerViewAdapter
+import com.ismailmesutmujde.kotlinstoragesqliteschoollessonscoreapp.dao.LessonScoresDao
+import com.ismailmesutmujde.kotlinstoragesqliteschoollessonscoreapp.database.DatabaseHelper
 import com.ismailmesutmujde.kotlinstoragesqliteschoollessonscoreapp.databinding.ActivityMainScreenBinding
 import com.ismailmesutmujde.kotlinstoragesqliteschoollessonscoreapp.model.LessonScores
 
@@ -14,6 +16,7 @@ class MainScreenActivity : AppCompatActivity() {
     private lateinit var bindingMainScreen : ActivityMainScreenBinding
     private lateinit var lessonScoreList:ArrayList<LessonScores>
     private lateinit var adapter:LessonScoresRecyclerViewAdapter
+    private lateinit var dbh:DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,12 +25,13 @@ class MainScreenActivity : AppCompatActivity() {
         setContentView(view)
 
         bindingMainScreen.toolbar.title = "Lesson Score App"
-        bindingMainScreen.toolbar.subtitle = "Average : 60"
+        bindingMainScreen.toolbar.subtitle = "Average : 0"
         setSupportActionBar(bindingMainScreen.toolbar)
 
         bindingMainScreen.recyclerView.setHasFixedSize(true)
         bindingMainScreen.recyclerView.layoutManager = LinearLayoutManager(this)
 
+        /*
         lessonScoreList = ArrayList()
 
         val l1 = LessonScores(1,"History", 40, 80)
@@ -38,8 +42,22 @@ class MainScreenActivity : AppCompatActivity() {
         lessonScoreList.add(l2)
         lessonScoreList.add(l3)
 
+         */
+
+        dbh = DatabaseHelper(this)
+        lessonScoreList = LessonScoresDao().allLessonScores(dbh)
+
         adapter = LessonScoresRecyclerViewAdapter(this, lessonScoreList)
         bindingMainScreen.recyclerView.adapter = adapter
+
+        var sum = 0
+        for(ls in lessonScoreList) {
+            sum = sum + (ls.score1 + ls.score2) / 2
+        }
+
+        if(sum != 0) {
+            bindingMainScreen.toolbar.subtitle = "Average : ${sum/lessonScoreList.size}"
+        }
 
         bindingMainScreen.fab.setOnClickListener {
             val intent = Intent(this@MainScreenActivity, LessonScoreRecordScreenActivity::class.java)
